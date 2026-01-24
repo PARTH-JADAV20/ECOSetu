@@ -1,5 +1,5 @@
+import { useState, useEffect } from 'react';
 import { Settings, Users, Bell, Lock, Database, Plus, X } from 'lucide-react';
-import { useState } from 'react';
 
 type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
 
@@ -7,52 +7,80 @@ interface SettingsPageProps {
   role: Role;
 }
 
-const initialUsers = [
-  { id: 1, name: 'John Smith', email: 'john.smith@example.com', role: 'Engineer', status: 'Active' },
-  { id: 2, name: 'Sarah Chen', email: 'sarah.chen@example.com', role: 'Engineer', status: 'Active' },
-  { id: 3, name: 'Jennifer Liu', email: 'jennifer.liu@example.com', role: 'Approver', status: 'Active' },
-  { id: 4, name: 'David Park', email: 'david.park@example.com', role: 'Operations', status: 'Active' },
-];
-
-const initialRoles = [
-  { id: 1, name: 'Engineer', description: 'Can create and modify products, BoMs, and ECOs', permissions: 'Read/Write' },
-  { id: 2, name: 'Approver', description: 'Can approve or reject ECOs', permissions: 'Approve' },
-  { id: 3, name: 'Operations', description: 'Can view and implement approved ECOs', permissions: 'Read/Implement' },
-  { id: 4, name: 'Admin', description: 'Full system access and user management', permissions: 'Full Access' },
-];
-
 export function SettingsPage({ role }: SettingsPageProps) {
   const isAdmin = role === 'Admin';
-  const [users, setUsers] = useState(initialUsers);
-  const [roles, setRoles] = useState(initialRoles);
+  const [users, setUsers] = useState<any[]>([]);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any>(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', role: 'Engineer', password: '' });
   const [newRole, setNewRole] = useState({ name: '', description: '', permissions: '' });
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAddUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    const user = {
-      id: users.length + 1,
-      ...newUser,
-      status: 'Active',
-    };
-    setUsers([...users, user]);
-    setShowAddUserModal(false);
-    setNewUser({ name: '', email: '', role: 'Engineer', password: '' });
-    alert(`User "${newUser.name}" created successfully!`);
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [usersRes, rolesRes, settingsRes] = await Promise.all([
+        fetch('/api/users'),
+        fetch('/api/roles'),
+        fetch('/api/settings'),
+      ]);
+      const [usersData, rolesData, settingsData] = await Promise.all([
+        usersRes.json(),
+        rolesRes.json(),
+        settingsRes.json(),
+      ]);
+      setUsers(usersData);
+      setRoles(rolesData);
+      setSettings(settingsData);
+    } catch (error) {
+      console.error('Failed to fetch settings data:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleAddRole = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    const role = {
-      id: roles.length + 1,
-      ...newRole,
-    };
-    setRoles([...roles, role]);
-    setShowAddRoleModal(false);
-    setNewRole({ name: '', description: '', permissions: '' });
-    alert(`Role "${newRole.name}" created successfully!`);
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser),
+      });
+      if (response.ok) {
+        fetchData();
+        setShowAddUserModal(false);
+        setNewUser({ name: '', email: '', role: 'Engineer', password: '' });
+        alert(`User "${newUser.name}" created successfully!`);
+      }
+    } catch (error) {
+      alert('Failed to create user');
+    }
+  };
+
+  const handleAddRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/roles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newRole),
+      });
+      if (response.ok) {
+        fetchData();
+        setShowAddRoleModal(false);
+        setNewRole({ name: '', description: '', permissions: '' });
+        alert(`Role "${newRole.name}" created successfully!`);
+      }
+    } catch (error) {
+      alert('Failed to create role');
+    }
   };
 
   return (
@@ -72,7 +100,7 @@ export function SettingsPage({ role }: SettingsPageProps) {
             </label>
             <input
               type="text"
-              defaultValue="Manufacturing Solutions Inc."
+              defaultValue={settings?.companyName || "Manufacturing Solutions Inc."}
               disabled={!isAdmin}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500"
             />
@@ -82,7 +110,7 @@ export function SettingsPage({ role }: SettingsPageProps) {
               Default Currency
             </label>
             <select
-              defaultValue="USD"
+              defaultValue={settings?.currency || "USD"}
               disabled={!isAdmin}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500"
             >
@@ -97,7 +125,7 @@ export function SettingsPage({ role }: SettingsPageProps) {
               Time Zone
             </label>
             <select
-              defaultValue="America/New_York"
+              defaultValue={settings?.timezone || "America/New_York"}
               disabled={!isAdmin}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500"
             >

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Filter, Search } from 'lucide-react';
 
 type Page = any;
@@ -9,77 +9,36 @@ interface ECOListProps {
   role: Role;
 }
 
-const ecos = [
-  {
-    id: '2024-001',
-    title: 'Update Motor Housing Material',
-    type: 'BoM',
-    product: 'Industrial Pump XR-500',
-    stage: 'Approval',
-    effectiveDate: '2024-02-01',
-    status: 'Pending Approval',
-  },
-  {
-    id: '2024-002',
-    title: 'Price Adjustment - Q1 2024',
-    type: 'Product',
-    product: 'Office Chair Deluxe',
-    stage: 'Completed',
-    effectiveDate: '2024-01-15',
-    status: 'Approved',
-  },
-  {
-    id: '2024-003',
-    title: 'Component Substitution - Chip Supplier Change',
-    type: 'BoM',
-    product: 'Smartphone Pro 12',
-    stage: 'Draft',
-    effectiveDate: '2024-02-15',
-    status: 'Draft',
-  },
-  {
-    id: '2024-004',
-    title: 'Add Mounting Bracket to Assembly',
-    type: 'BoM',
-    product: 'Automotive Dashboard Panel',
-    stage: 'Approval',
-    effectiveDate: '2024-02-05',
-    status: 'Pending Approval',
-  },
-  {
-    id: '2024-005',
-    title: 'Cost Reduction Initiative - Cable Assembly',
-    type: 'Product',
-    product: 'USB-C Cable 2m',
-    stage: 'Completed',
-    effectiveDate: '2024-01-10',
-    status: 'Approved',
-  },
-  {
-    id: '2024-006',
-    title: 'Improve Lumbar Support Mechanism',
-    type: 'BoM',
-    product: 'Office Chair Deluxe',
-    stage: 'Implementation',
-    effectiveDate: '2024-01-28',
-    status: 'Approved',
-  },
-  {
-    id: '2023-087',
-    title: 'Archive LED Monitor v1.0',
-    type: 'Product',
-    product: 'LED Monitor 27"',
-    stage: 'Completed',
-    effectiveDate: '2023-12-31',
-    status: 'Archived',
-  },
-];
-
 export function ECOList({ onNavigate, role }: ECOListProps) {
+  const [ecosList, setEcosList] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStage, setFilterStage] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchECOs = async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (filterStage !== 'all') params.append('stage', filterStage);
+      if (filterType !== 'all') params.append('type', filterType);
+      if (filterStatus !== 'all') params.append('status', filterStatus);
+
+      const response = await fetch(`/api/eco?${params.toString()}`);
+      const data = await response.json();
+      setEcosList(data);
+    } catch (error) {
+      console.error('Failed to fetch ECOs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchECOs();
+  }, [searchQuery, filterStage, filterType, filterStatus]);
 
   const canCreateECO = role === 'Engineer' || role === 'Admin';
 
@@ -100,16 +59,7 @@ export function ECOList({ onNavigate, role }: ECOListProps) {
     }
   };
 
-  const filteredECOs = ecos.filter((eco) => {
-    const matchesSearch =
-      eco.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      eco.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      eco.product.toLowerCase().includes(searchQuery.toLowerCase());
-    const stageMatch = filterStage === 'all' || eco.stage === filterStage;
-    const typeMatch = filterType === 'all' || eco.type === filterType;
-    const statusMatch = filterStatus === 'all' || eco.status === filterStatus;
-    return matchesSearch && stageMatch && typeMatch && statusMatch;
-  });
+
 
   return (
     <div className="space-y-6">
@@ -181,7 +131,7 @@ export function ECOList({ onNavigate, role }: ECOListProps) {
         <div className="px-6 py-4 border-b border-slate-200">
           <h3 className="text-lg font-semibold text-slate-900">Engineering Change Orders</h3>
           <p className="text-sm text-slate-600 mt-1">
-            Showing {filteredECOs.length} of {ecos.length} ECOs
+            Showing {ecosList.length} ECOs
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -212,21 +162,27 @@ export function ECOList({ onNavigate, role }: ECOListProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredECOs.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-sm text-slate-500">
+                    Loading ECOs...
+                  </td>
+                </tr>
+              ) : ecosList.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center text-sm text-slate-500">
                     No ECOs found matching your criteria
                   </td>
                 </tr>
               ) : (
-                filteredECOs.map((eco) => (
+                ecosList.map((eco) => (
                   <tr
                     key={eco.id}
                     onClick={() => onNavigate({ name: 'eco-detail', id: eco.id })}
                     className="hover:bg-slate-50 cursor-pointer transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm font-medium text-slate-900">ECO-{eco.id}</span>
+                      <span className="text-sm font-medium text-slate-900">{eco.id}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-slate-900">{eco.title}</span>
