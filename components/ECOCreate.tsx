@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Send } from 'lucide-react';
 
 type Page = any;
@@ -10,45 +10,77 @@ interface ECOCreateProps {
   role: Role;
 }
 
-const products = [
-  { id: 'P001', name: 'Office Chair Deluxe' },
-  { id: 'P002', name: 'Industrial Pump XR-500' },
-  { id: 'P003', name: 'Smartphone Pro 12' },
-  { id: 'P004', name: 'Laptop Ultrabook X1' },
-  { id: 'P005', name: 'Automotive Dashboard Panel' },
-];
-
-const boms: Record<string, string[]> = {
-  P001: ['BOM001 - Office Chair Deluxe v2.3'],
-  P002: ['BOM002 - Industrial Pump XR-500 v1.8'],
-  P003: ['BOM003 - Smartphone Pro 12 v4.2'],
-  P004: ['BOM004 - Laptop Ultrabook X1 v3.1'],
-  P005: ['BOM005 - Automotive Dashboard Panel v2.0'],
-};
-
 export function ECOCreate({ onNavigate, productId, role }: ECOCreateProps) {
+  const [productsList, setProductsList] = useState<any[]>([]);
   const [ecoTitle, setEcoTitle] = useState('');
   const [ecoType, setEcoType] = useState<'Product' | 'BoM'>('Product');
   const [selectedProduct, setSelectedProduct] = useState(productId || '');
   const [selectedBoM, setSelectedBoM] = useState('');
-  const [effectiveDate, setEffectiveDate] = useState('2024-02-01');
+  const [effectiveDate, setEffectiveDate] = useState(new Date().toISOString().split('T')[0]);
   const [versionUpdate, setVersionUpdate] = useState(true);
   const [description, setDescription] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        setProductsList(data);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const canSubmit = role === 'Engineer' || role === 'Admin';
 
-  const handleSaveDraft = () => {
-    alert('ECO saved as draft');
-    onNavigate({ name: 'eco-list' });
+  const handleSaveDraft = async () => {
+    await submitECO('Draft');
   };
 
-  const handleSubmitForApproval = () => {
+  const handleSubmitForApproval = async () => {
     if (!ecoTitle || !selectedProduct) {
       alert('Please fill in all required fields');
       return;
     }
-    alert('ECO submitted for approval');
-    onNavigate({ name: 'eco-list' });
+    await submitECO('Pending Approval');
+  };
+
+  const submitECO = async (status: string) => {
+    setIsLoading(true);
+    try {
+      // Find the internal DB ID for the selected product
+      const product = productsList.find(p => p.productId === selectedProduct || p.id === selectedProduct);
+
+      const response = await fetch('/api/eco', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ecoId: `ECO-${Math.floor(1000 + Math.random() * 9000)}`, // Simple auto-gen
+          title: ecoTitle,
+          type: ecoType,
+          productId: product?.id,
+          description,
+          effectiveDate,
+          status,
+          createdBy: 'Current User', // Placeholder
+        }),
+      });
+
+      if (response.ok) {
+        alert(`ECO ${status === 'Draft' ? 'saved' : 'submitted'} successfully`);
+        onNavigate({ name: 'eco-list' });
+      } else {
+        const data = await response.json();
+        alert(`Failed to create ECO: ${data.error}`);
+      }
+    } catch (error) {
+      alert('An error occurred while creating the ECO.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -129,9 +161,9 @@ export function ECOCreate({ onNavigate, productId, role }: ECOCreateProps) {
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select a product...</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.id} - {product.name}
+              {productsList.map((product) => (
+                <option key={product.id} value={product.productId}>
+                  {product.productId} - {product.name}
                 </option>
               ))}
             </select>
@@ -149,11 +181,13 @@ export function ECOCreate({ onNavigate, productId, role }: ECOCreateProps) {
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select a BoM...</option>
-                {boms[selectedProduct]?.map((bom, index) => (
-                  <option key={index} value={bom}>
-                    {bom}
-                  </option>
-                ))}
+                {productsList
+                  .find(p => p.productId === selectedProduct || p.id === selectedProduct)
+                  ?.boms?.map((bom: any) => (
+                    <option key={bom.id} value={bom.bomId}>
+                      {bom.bomId} - {bom.version}
+                    </option>
+                  ))}
               </select>
             </div>
           )}
@@ -216,17 +250,19 @@ export function ECOCreate({ onNavigate, productId, role }: ECOCreateProps) {
             <>
               <button
                 onClick={handleSaveDraft}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                disabled={isLoading}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                Save as Draft
+                {isLoading ? 'Saving...' : 'Save as Draft'}
               </button>
               <button
                 onClick={handleSubmitForApproval}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                disabled={isLoading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
-                Submit for Approval
+                {isLoading ? 'Submitting...' : 'Submit for Approval'}
               </button>
             </>
           )}

@@ -75,11 +75,47 @@ const productCategoryData = [
   { category: 'Automotive', count: 22 },
 ];
 
+import { useState, useEffect } from 'react';
+
 export function Dashboard({ onNavigate, role }: DashboardProps) {
+  const [statsData, setStatsData] = useState<any>(null);
+  const [chartData, setChartData] = useState<any>(null);
+  const [recentECOsData, setRecentECOsData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [statsRes, chartsRes, ecosRes] = await Promise.all([
+          fetch('/api/dashboard/stats'),
+          fetch('/api/dashboard/charts'),
+          fetch('/api/eco'),
+        ]);
+
+        const [stats, charts, ecos] = await Promise.all([
+          statsRes.json(),
+          chartsRes.json(),
+          ecosRes.json(),
+        ]);
+
+        setStatsData(stats);
+        setChartData(charts);
+        // Take last 5 for recent activity
+        setRecentECOsData(Array.isArray(ecos) ? ecos.slice(0, 5) : []);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   const stats = [
     {
       label: 'Total Products',
-      value: '127',
+      value: statsData?.products?.toString() || '0',
       icon: Package,
       trend: '+12',
       trendUp: true,
@@ -88,7 +124,7 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
     },
     {
       label: 'Active BoMs',
-      value: '89',
+      value: statsData?.activeBoMs?.toString() || '0',
       icon: Layers,
       trend: '+5',
       trendUp: true,
@@ -97,7 +133,7 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
     },
     {
       label: 'Open ECOs',
-      value: '23',
+      value: statsData?.openECOs?.toString() || '0',
       icon: FileEdit,
       trend: '-3',
       trendUp: false,
@@ -106,7 +142,7 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
     },
     {
       label: 'Pending Approvals',
-      value: '8',
+      value: statsData?.pendingApprovals?.toString() || '0',
       icon: Clock,
       trend: '+2',
       trendUp: true,
@@ -219,13 +255,13 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="month" stroke="#64748b" style={{ fontSize: '12px' }} />
               <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#ffffff', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
                   borderRadius: '8px',
                   fontSize: '12px'
-                }} 
+                }}
               />
               <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Line type="monotone" dataKey="created" stroke="#3b82f6" strokeWidth={2} name="Created" />
@@ -244,7 +280,7 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={ecoStatusData}
+                data={chartData?.ecoStatusData || []}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -253,17 +289,17 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {ecoStatusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                {(chartData?.ecoStatusData || []).map((entry: any, index: number) => (
+                  <Cell key={`cell-${index}`} fill={entry.color || ['#10b981', '#f59e0b', '#64748b', '#ef4444'][index % 4]} />
                 ))}
               </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#ffffff', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
                   borderRadius: '8px',
                   fontSize: '12px'
-                }} 
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -276,17 +312,17 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
             <p className="text-sm text-slate-600 mt-1">Distribution of products across manufacturing categories</p>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={productCategoryData}>
+            <BarChart data={chartData?.productCategoryData || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="category" stroke="#64748b" style={{ fontSize: '12px' }} />
               <YAxis stroke="#64748b" style={{ fontSize: '12px' }} />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#ffffff', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
                   borderRadius: '8px',
                   fontSize: '12px'
-                }} 
+                }}
               />
               <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -324,14 +360,14 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {recentECOs.map((eco) => (
+              {recentECOsData.map((eco) => (
                 <tr
                   key={eco.id}
                   onClick={() => onNavigate({ name: 'eco-detail', id: eco.id })}
                   className="hover:bg-slate-50 cursor-pointer transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-slate-900">ECO-{eco.id}</span>
+                    <span className="text-sm font-medium text-slate-900">{eco.ecoNumber}</span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-slate-900">{eco.title}</span>
@@ -340,7 +376,7 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
                     <span className="text-sm text-slate-600">{eco.type}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm text-slate-600">{eco.product}</span>
+                    <span className="text-sm text-slate-600">{eco.product?.name || 'N/A'}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(eco.status)}`}>
@@ -348,10 +384,17 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                    {eco.lastUpdated}
+                    {new Date(eco.updatedAt).toLocaleDateString()}
                   </td>
                 </tr>
               ))}
+              {recentECOsData.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-slate-500">
+                    No recent ECO activity found
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

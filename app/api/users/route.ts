@@ -1,0 +1,73 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+export async function GET(request: NextRequest) {
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                status: true,
+                location: true,
+                phone: true,
+                // Exclude password
+            },
+            orderBy: { name: 'asc' },
+        });
+
+        return NextResponse.json(users);
+    } catch (error) {
+        return NextResponse.json(
+            { error: 'Failed to fetch users' },
+            { status: 500 }
+        );
+    }
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+
+        // Basic validation
+        if (!body.email || !body.password || !body.name) {
+            return NextResponse.json(
+                { error: 'Missing required fields' },
+                { status: 400 }
+            );
+        }
+
+        const existingUser = await prisma.user.findUnique({
+            where: { email: body.email }
+        });
+
+        if (existingUser) {
+            return NextResponse.json(
+                { error: 'User already exists' },
+                { status: 409 }
+            );
+        }
+
+        const user = await prisma.user.create({
+            data: {
+                name: body.name,
+                email: body.email,
+                password: body.password, // Ideally hash this
+                role: body.role || 'Engineer',
+                status: 'Active',
+                location: body.location,
+                phone: body.phone,
+                description: body.description,
+            },
+        });
+
+        const { password: _, ...userWithoutPassword } = user;
+        return NextResponse.json(userWithoutPassword, { status: 201 });
+    } catch (error) {
+        return NextResponse.json(
+            { error: 'Failed to create user' },
+            { status: 500 }
+        );
+    }
+}

@@ -1,5 +1,5 @@
 import { Eye, Search, Filter } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type Page = any;
 
@@ -7,68 +7,32 @@ interface BoMListProps {
   onNavigate: (page: Page) => void;
 }
 
-const boms = [
-  {
-    id: 'BOM001',
-    productName: 'Office Chair Deluxe',
-    version: 'v2.3',
-    status: 'Active',
-    componentsCount: 23,
-  },
-  {
-    id: 'BOM002',
-    productName: 'Industrial Pump XR-500',
-    version: 'v1.8',
-    status: 'Active',
-    componentsCount: 47,
-  },
-  {
-    id: 'BOM003',
-    productName: 'Smartphone Pro 12',
-    version: 'v4.2',
-    status: 'Active',
-    componentsCount: 156,
-  },
-  {
-    id: 'BOM004',
-    productName: 'Laptop Ultrabook X1',
-    version: 'v3.1',
-    status: 'Active',
-    componentsCount: 89,
-  },
-  {
-    id: 'BOM005',
-    productName: 'Automotive Dashboard Panel',
-    version: 'v2.0',
-    status: 'Active',
-    componentsCount: 34,
-  },
-  {
-    id: 'BOM006',
-    productName: 'Conference Table Oak',
-    version: 'v1.2',
-    status: 'Active',
-    componentsCount: 12,
-  },
-  {
-    id: 'BOM007',
-    productName: 'Electric Motor 5HP',
-    version: 'v2.7',
-    status: 'Active',
-    componentsCount: 28,
-  },
-  {
-    id: 'BOM008',
-    productName: 'LED Monitor 27"',
-    version: 'v1.0',
-    status: 'Archived',
-    componentsCount: 67,
-  },
-];
-
 export function BoMList({ onNavigate }: BoMListProps) {
+  const [bomsList, setBomsList] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchBoMs = async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (filterStatus !== 'all') params.append('status', filterStatus);
+
+      const response = await fetch(`/api/bom?${params.toString()}`);
+      const data = await response.json();
+      setBomsList(data);
+    } catch (error) {
+      console.error('Failed to fetch BoMs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBoMs();
+  }, [searchQuery, filterStatus]);
 
   const getStatusColor = (status: string) => {
     return status === 'Active'
@@ -76,14 +40,7 @@ export function BoMList({ onNavigate }: BoMListProps) {
       : 'bg-slate-100 text-slate-600';
   };
 
-  // Filter BoMs
-  const filteredBoMs = boms.filter((bom) => {
-    const matchesSearch = 
-      bom.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bom.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || bom.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+
 
   return (
     <div className="space-y-6">
@@ -91,7 +48,7 @@ export function BoMList({ onNavigate }: BoMListProps) {
         <div className="px-6 py-4 border-b border-slate-200">
           <h3 className="text-lg font-semibold text-slate-900">Bills of Materials</h3>
           <p className="text-sm text-slate-600 mt-1">
-            Component and operation definitions for products - Showing {filteredBoMs.length} of {boms.length} BoMs
+            Component and operation definitions for products - Showing {bomsList.length} BoMs
           </p>
 
           {/* Search and Filters */}
@@ -145,14 +102,20 @@ export function BoMList({ onNavigate }: BoMListProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredBoMs.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-sm text-slate-500">
+                    Loading BoMs...
+                  </td>
+                </tr>
+              ) : bomsList.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-sm text-slate-500">
                     No BoMs found matching your criteria
                   </td>
                 </tr>
               ) : (
-                filteredBoMs.map((bom) => (
+                bomsList.map((bom) => (
                   <tr key={bom.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-medium text-slate-900">{bom.id}</span>

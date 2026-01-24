@@ -1,0 +1,184 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id              String           @id @default(cuid())
+  productId       String           @unique
+  name            String
+  category        String
+  currentVersion  String           @default("v1.0")
+  salePrice       Decimal
+  costPrice       Decimal
+  status          String           @default("Active")
+  description     String?
+  sku             String           @unique
+  manufacturer    String?
+  weight          String?
+  dimensions      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  versions        ProductVersion[]
+  boms            BoM[]
+  ecos            ECO[]
+}
+
+model ProductVersion {
+  id        String   @id @default(cuid())
+  version   String
+  date      DateTime @default(now())
+  changes   String
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model BoM {
+  id              String           @id @default(cuid())
+  bomId           String           @unique
+  version         String           @default("v1.0")
+  status          String           @default("Active")
+  componentsCount Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  productId       String
+  product         Product          @relation(fields: [productId], references: [id])
+
+  components      BoMComponent[]
+  operations      BoMOperation[]
+}
+
+model BoMComponent {
+  id        String @id @default(cuid())
+  name      String
+  quantity  Decimal
+  unit      String
+  supplier  String?
+
+  bomId     String
+  bom       BoM    @relation(fields: [bomId], references: [id])
+}
+
+model BoMOperation {
+  id         String  @id @default(cuid())
+  name       String
+  time       Decimal
+  unit       String
+  workCenter String
+
+  bomId      String
+  bom        BoM     @relation(fields: [bomId], references: [id])
+}
+
+model ECO {
+  id            String    @id @default(cuid())
+  ecoId         String    @unique
+  title         String
+  type          String
+  stage         String
+  status        String
+  effectiveDate DateTime
+  createdBy     String
+  description   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id])
+
+  changes       ECOChange[]
+  approvals     ECOApproval[]
+  auditLog      ECOAuditLog[]
+}
+
+model ECOChange {
+  id        String  @id @default(cuid())
+  component String?
+  field     String
+  oldValue  String?
+  newValue  String?
+  highlight String?
+
+  ecoId     String
+  eco       ECO     @relation(fields: [ecoId], references: [id])
+}
+
+model ECOApproval {
+  id      String    @id @default(cuid())
+  role    String
+  name    String
+  status  String
+  date    DateTime?
+  comment String?
+
+  ecoId   String
+  eco     ECO       @relation(fields: [ecoId], references: [id])
+}
+
+model ECOAuditLog {
+  id     String   @id @default(cuid())
+  date   DateTime @default(now())
+  user   String
+  action String
+
+  ecoId  String
+  eco    ECO      @relation(fields: [ecoId], references: [id])
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  role        String
+  status      String   @default("Active")
+  location    String?
+  phone       String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  notifications Notification[]
+  activities    UserActivity[]
+}
+
+model Role {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String
+  permissions String
+}
+
+model UserActivity {
+  id        String   @id @default(cuid())
+  action    String
+  type      String
+  date      DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  isUnread  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model SystemSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}

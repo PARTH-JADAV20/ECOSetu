@@ -17,7 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   currentRole: Role;
   currentUser: User;
-  login: (role: Role, userData: User) => void;
+  login: (userData: User) => void;
   logout: () => void;
   setRole: (role: Role) => void;
   updateUser: (userData: Partial<User>) => void;
@@ -28,8 +28,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentRole, setCurrentRole] = useState<Role>('Engineer');
-  const [currentUser, setCurrentUser] = useState<User>({ 
-    name: 'John Smith', 
+  const [currentUser, setCurrentUser] = useState<User>({
+    name: 'John Smith',
     email: 'john.smith@example.com',
     location: 'San Francisco, CA',
     phone: '+1 (555) 123-4567',
@@ -37,9 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     role: 'Engineer'
   });
 
-  const login = (role: Role, userData: User) => {
+  const login = (userData: User) => {
     setIsAuthenticated(true);
-    setCurrentRole(role);
+    setCurrentRole(userData.role || 'Engineer');
     setCurrentUser(userData);
   };
 
