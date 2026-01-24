@@ -4,7 +4,7 @@ import { Lock, User, Building2 } from 'lucide-react';
 type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
 
 interface LoginPageProps {
-  onLogin: (role: Role, userData: any) => void;
+  onLogin: (userData: any) => void;
 }
 
 const userAccounts = [
@@ -20,24 +20,62 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    const user = userAccounts.find(
-      (account) => account.email === email && account.password === password
-    );
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (user) {
-      onLogin(user.role, { name: user.name, email: user.email });
-    } else {
-      setError('Invalid email or password');
+      const data = await response.json();
+
+      if (response.ok) {
+        onLogin(data);
+      } else {
+        setError(data.error || 'Invalid email or password');
+      }
+    } catch (err) {
+      setError('An error occurred during login. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleQuickLogin = (userAccount: typeof userAccounts[0]) => {
-    onLogin(userAccount.role, { name: userAccount.name, email: userAccount.email });
+  const handleQuickLogin = async (userAccount: typeof userAccounts[0]) => {
+    setEmail(userAccount.email);
+    setPassword(userAccount.password);
+    // Automatically trigger submit
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: userAccount.email, password: userAccount.password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onLogin(data);
+      } else {
+        setError(data.error || 'Invalid email or password');
+      }
+    } catch (err) {
+      setError('An error occurred during login.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -128,9 +166,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Sign In
+                  {isLoading ? 'Signing In...' : 'Sign In'}
                 </button>
               </form>
 

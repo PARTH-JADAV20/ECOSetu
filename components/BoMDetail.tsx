@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { ArrowLeft, Package, Wrench } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 type Page = any;
 type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
@@ -10,61 +10,25 @@ interface BoMDetailProps {
   role: Role;
 }
 
-const bomData: Record<string, any> = {
-  BOM001: {
-    productName: 'Office Chair Deluxe',
-    productId: 'P001',
-    version: 'v2.3',
-    status: 'Active',
-    components: [
-      { name: 'Seat Cushion - Memory Foam', quantity: 1, unit: 'pcs', supplier: 'ComfortTech Ltd' },
-      { name: 'Backrest Frame - Steel', quantity: 1, unit: 'pcs', supplier: 'MetalWorks Inc' },
-      { name: 'Gas Lift Cylinder', quantity: 1, unit: 'pcs', supplier: 'HydroLift Co' },
-      { name: 'Armrest Assembly', quantity: 2, unit: 'pcs', supplier: 'ErgoComponents' },
-      { name: '5-Star Base - Aluminum', quantity: 1, unit: 'pcs', supplier: 'BaseSupply Ltd' },
-      { name: 'Caster Wheels', quantity: 5, unit: 'pcs', supplier: 'WheelPro Inc' },
-      { name: 'Upholstery Fabric - Grey', quantity: 2.5, unit: 'm²', supplier: 'TextileMasters' },
-      { name: 'Lumbar Support Mechanism', quantity: 1, unit: 'pcs', supplier: 'ErgoComponents' },
-      { name: 'Seat Tilt Mechanism', quantity: 1, unit: 'pcs', supplier: 'MechParts Ltd' },
-      { name: 'Height Adjustment Lever', quantity: 1, unit: 'pcs', supplier: 'ControlTech' },
-    ],
-    operations: [
-      { name: 'Frame Assembly', time: 15, unit: 'min', workCenter: 'Assembly Line A' },
-      { name: 'Upholstery Application', time: 25, unit: 'min', workCenter: 'Upholstery Dept' },
-      { name: 'Mechanism Installation', time: 20, unit: 'min', workCenter: 'Assembly Line A' },
-      { name: 'Quality Inspection', time: 10, unit: 'min', workCenter: 'QC Station 1' },
-      { name: 'Packaging', time: 8, unit: 'min', workCenter: 'Packaging Line' },
-    ],
-  },
-  BOM002: {
-    productName: 'Industrial Pump XR-500',
-    productId: 'P002',
-    version: 'v1.8',
-    status: 'Active',
-    components: [
-      { name: 'Motor Housing - Aluminum Alloy', quantity: 1, unit: 'pcs', supplier: 'CastMetal Industries' },
-      { name: 'Electric Motor 5HP', quantity: 1, unit: 'pcs', supplier: 'PowerDrive Motors' },
-      { name: 'Impeller - Stainless Steel 316', quantity: 1, unit: 'pcs', supplier: 'Precision Casting Ltd' },
-      { name: 'Seal Assembly', quantity: 2, unit: 'pcs', supplier: 'SealTech Corp' },
-      { name: 'Bearing Set', quantity: 1, unit: 'set', supplier: 'BearingSupply Co' },
-      { name: 'Inlet Flange 4"', quantity: 1, unit: 'pcs', supplier: 'FlangeMakers' },
-      { name: 'Outlet Flange 3"', quantity: 1, unit: 'pcs', supplier: 'FlangeMakers' },
-      { name: 'Gasket Kit', quantity: 1, unit: 'kit', supplier: 'SealTech Corp' },
-    ],
-    operations: [
-      { name: 'Motor Housing Preparation', time: 30, unit: 'min', workCenter: 'Machining Center 2' },
-      { name: 'Impeller Installation', time: 45, unit: 'min', workCenter: 'Assembly Station B' },
-      { name: 'Seal and Bearing Assembly', time: 60, unit: 'min', workCenter: 'Assembly Station B' },
-      { name: 'Motor Integration', time: 40, unit: 'min', workCenter: 'Motor Assembly' },
-      { name: 'Pressure Testing', time: 90, unit: 'min', workCenter: 'Test Lab 1' },
-      { name: 'Final Inspection', time: 20, unit: 'min', workCenter: 'QC Station 2' },
-    ],
-  },
-};
-
 export function BoMDetail({ bomId, onNavigate, role }: BoMDetailProps) {
   const [activeView, setActiveView] = useState<'components' | 'operations'>('components');
-  const bom = bomData[bomId] || bomData.BOM001;
+  const [bom, setBom] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBoM = async () => {
+      try {
+        const response = await fetch(`/api/bom/${bomId}`);
+        const data = await response.json();
+        setBom(data);
+      } catch (error) {
+        console.error('Failed to fetch BoM:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBoM();
+  }, [bomId]);
 
   const canCreateECO = role === 'Engineer' || role === 'Admin';
 
@@ -114,22 +78,20 @@ export function BoMDetail({ bomId, onNavigate, role }: BoMDetailProps) {
       <div className="flex gap-2 bg-slate-100 p-1 rounded-lg w-fit">
         <button
           onClick={() => setActiveView('components')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeView === 'components'
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeView === 'components'
+            ? 'bg-white text-slate-900 shadow-sm'
+            : 'text-slate-600 hover:text-slate-900'
+            }`}
         >
           <Package className="w-4 h-4" />
           Components
         </button>
         <button
           onClick={() => setActiveView('operations')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeView === 'operations'
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeView === 'operations'
+            ? 'bg-white text-slate-900 shadow-sm'
+            : 'text-slate-600 hover:text-slate-900'
+            }`}
         >
           <Wrench className="w-4 h-4" />
           Operations
@@ -138,86 +100,108 @@ export function BoMDetail({ bomId, onNavigate, role }: BoMDetailProps) {
 
       {/* Content */}
       <div className="bg-white rounded-xl border border-slate-200">
-        {activeView === 'components' && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Component Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Quantity
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Unit
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Supplier
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {bom.components.map((component: any, index: number) => (
-                  <tr key={index} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-900">{component.name}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-slate-900">{component.quantity}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-slate-600">{component.unit}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{component.supplier}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {isLoading ? (
+          <div className="text-center py-12 text-slate-500">Loading BoM details...</div>
+        ) : !bom ? (
+          <div className="text-center py-12 text-red-500">BoM not found</div>
+        ) : (
+          <>
+            {activeView === 'components' && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Component Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Quantity
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Unit
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Supplier
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {bom.components?.map((component: any, index: number) => (
+                      <tr key={index} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-slate-900">{component.name}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-slate-900">{component.quantity}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-slate-600">{component.unit}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-slate-600">{component.supplier || 'N/A'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {(!bom.components || bom.components.length === 0) && (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-10 text-center text-slate-500">
+                          No components defined for this BoM
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-        {activeView === 'operations' && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Operation Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Time
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Unit
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
-                    Work Center
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {bom.operations.map((operation: any, index: number) => (
-                  <tr key={index} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-900">{operation.name}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-slate-900">{operation.time}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-slate-600">{operation.unit}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-slate-600">{operation.workCenter}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            {activeView === 'operations' && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Operation Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Time
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Unit
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase tracking-wider">
+                        Work Center
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {bom.operations?.map((operation: any, index: number) => (
+                      <tr key={index} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-slate-900">{operation.name}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-slate-900">{operation.time}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-slate-600">{operation.unit}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-slate-600">{operation.workCenter || 'N/A'}</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {(!bom.operations || bom.operations.length === 0) && (
+                      <tr>
+                        <td colSpan={4} className="px-6 py-10 text-center text-slate-500">
+                          No operations defined for this BoM
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
