@@ -6,12 +6,17 @@ import { LoginPage } from '../../components/LoginPage';
 
 export default function Login() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isReady } = useAuth();
 
-  const handleLogin = (role: any, userData: any) => {
-    login(role, userData);
+  const handleLogin = (userData: any) => {
+    login(userData);
     router.push('/dashboard');
   };
+
+  if (isReady && isAuthenticated) {
+    router.replace('/dashboard');
+    return null;
+  }
 
   return <LoginPage onLogin={handleLogin} />;
 }
