@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LoginPage } from '../../components/LoginPage';
 
@@ -13,8 +14,11 @@ export default function Login() {
     router.push('/dashboard');
   };
 
-  if (isReady && isAuthenticated) {
-    router.replace('/dashboard');
+  if (!isReady) {
+    return null;
+  }
+
+  if (isAuthenticated) {
     return null;
   }
 
