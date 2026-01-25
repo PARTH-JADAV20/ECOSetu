@@ -9,14 +9,8 @@ export default function Login() {
   const router = useRouter();
   const { login, isAuthenticated, isReady } = useAuth();
 
-  useEffect(() => {
-    if (isReady && isAuthenticated) {
-      router.replace('/dashboard');
-    }
-  }, [isReady, isAuthenticated, router]);
-
-  const handleLogin = (userData: any) => {
-    login(userData);
+  const handleLogin = async (userData: any) => {
+    await login(userData);
     router.push('/dashboard');
   };
 
