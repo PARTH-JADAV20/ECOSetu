@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Settings, Users, Bell, Lock, Database, Plus, X, Globe, Trash2, Search } from 'lucide-react';
 import { useCurrency } from '../contexts/CurrencyContext';
 
-type Role = 'Engineer' | 'MCO Manager' | 'Operations' | 'Admin';
+type Role = 'Engineer' | 'ECO Manager' | 'Operations' | 'Admin';
 
 interface SettingsPageProps {
   role: Role;
@@ -661,7 +661,7 @@ export function SettingsPage({ role }: SettingsPageProps) {
                   required
                 >
                   <option value="Engineer">Engineer</option>
-                  <option value="MCO Manager">MCO Manager</option>
+                  <option value="ECO Manager">ECO Manager</option>
                   <option value="Operations">Operations</option>
                   <option value="Admin">Admin</option>
                 </select>
