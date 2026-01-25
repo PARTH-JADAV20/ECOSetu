@@ -16,9 +16,12 @@ export function SettingsPage({ role }: SettingsPageProps) {
   const [settings, setSettings] = useState<any>(null);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', role: 'Engineer', password: '' });
   const [newRole, setNewRole] = useState({ name: '', description: '', permissions: '' });
+  const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [isLoading, setIsLoading] = useState(true);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -82,6 +85,105 @@ export function SettingsPage({ role }: SettingsPageProps) {
       }
     } catch (error) {
       alert('Failed to create role');
+    }
+  };
+
+  const refreshAccessToken = async (): Promise<boolean> => {
+    try {
+      const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
+      
+      if (!refreshToken) {
+        console.error('No refresh token available');
+        return false;
+      }
+      
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Token refresh failed:', errorData);
+        return false;
+      }
+      
+      const data = await response.json();
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', data.accessToken);
+      }
+      
+      console.log('Access token refreshed successfully');
+      return true;
+    } catch (error) {
+      console.error('Error refreshing access token:', error);
+      return false;
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate passwords
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('New passwords do not match!');
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      alert('Password must be at least 6 characters long!');
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    
+    try {
+      // Get access token from localStorage
+      let accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+      
+      const makeRequest = async (token: string | null) => {
+        return await fetch('/api/profile/password', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          },
+          body: JSON.stringify({
+            currentPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword
+          }),
+        });
+      };
+      
+      // First attempt with current token
+      let response = await makeRequest(accessToken);
+      
+      // If unauthorized, try to refresh token and retry
+      if (response.status === 401) {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+          accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+          response = await makeRequest(accessToken);
+        }
+      }
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        alert('Password changed successfully!');
+        setShowChangePasswordModal(false);
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        alert(result.error || 'Failed to change password');
+      }
+    } catch (error) {
+      alert('Failed to change password');
+      console.error('Password change error:', error);
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -304,7 +406,10 @@ export function SettingsPage({ role }: SettingsPageProps) {
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <button className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+            <button 
+              onClick={() => setShowChangePasswordModal(true)}
+              className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+            >
               Change Password
             </button>
           </div>
@@ -319,6 +424,87 @@ export function SettingsPage({ role }: SettingsPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      {showChangePasswordModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-900">Change Password</h3>
+              <button
+                onClick={() => setShowChangePasswordModal(false)}
+                className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-600" />
+              </button>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-2">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  placeholder="Enter current password"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-2">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  placeholder="Enter new password"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  minLength={6}
+                />
+                <p className="text-xs text-slate-500 mt-1">Must be at least 6 characters long</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-900 mb-2">
+                  Confirm New Password
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  placeholder="Confirm new password"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setShowChangePasswordModal(false)}
+                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  disabled={isChangingPassword}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isChangingPassword}
+                >
+                  {isChangingPassword ? 'Changing...' : 'Change Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* System Information */}
       {isAdmin && (
