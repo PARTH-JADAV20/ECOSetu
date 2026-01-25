@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Send } from 'lucide-react';
 
 type Page = any;
-type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
+type Role = 'Engineer' | 'MCO Manager' | 'Operations' | 'Admin';
 
 interface ECOCreateProps {
   onNavigate: (page: Page) => void;

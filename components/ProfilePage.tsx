@@ -2,7 +2,7 @@ import { Mail, Phone, MapPin, Calendar, Shield, LogOut, Edit, X, Camera } from '
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
+type Role = 'Engineer' | 'MCO Manager' | 'Operations' | 'Admin';
 
 interface ProfilePageProps {
   user?: { name: string; email: string }; // Optional to allow override, but usually from context
@@ -12,7 +12,7 @@ interface ProfilePageProps {
 
 const roleDescriptions = {
   Engineer: 'Can create and edit ECOs, manage product data, and submit changes for approval.',
-  Approver: 'Reviews and approves engineering change orders, validates technical specifications.',
+  'MCO Manager': 'Reviews and approves engineering change orders, validates technical specifications.',
   Operations: 'Read-only access to ECO data, can validate implementation and provide operational feedback.',
   Admin: 'Full system access including user management, settings configuration, and system administration.',
 };
@@ -47,7 +47,7 @@ export function ProfilePage({ user: propUser, role, onLogout }: ProfilePageProps
     switch (role) {
       case 'Admin':
         return 'bg-purple-100 text-purple-700';
-      case 'Approver':
+      case 'MCO Manager':
         return 'bg-blue-100 text-blue-700';
       case 'Engineer':
         return 'bg-emerald-100 text-emerald-700';
@@ -234,7 +234,7 @@ export function ProfilePage({ user: propUser, role, onLogout }: ProfilePageProps
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Role Information */}
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-3">
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h3 className="text-lg font-semibold text-slate-900 mb-4">Role & Permissions</h3>
             <div className="space-y-4">
@@ -264,82 +264,6 @@ export function ProfilePage({ user: propUser, role, onLogout }: ProfilePageProps
               </div>
             </div>
           </div>
-
-          {/* Statistics */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6 mt-6">
-            <h3 className="text-lg font-semibold text-slate-900 mb-4">Statistics</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">ECOs Created</span>
-                <span className="text-lg font-semibold text-slate-900">24</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">ECOs Approved</span>
-                <span className="text-lg font-semibold text-slate-900">18</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Products Managed</span>
-                <span className="text-lg font-semibold text-slate-900">12</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Pending Actions</span>
-                <span className="text-lg font-semibold text-amber-600">3</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl border border-slate-200">
-            <div className="px-6 py-4 border-b border-slate-200">
-              <h3 className="text-lg font-semibold text-slate-900">Recent Activity</h3>
-              <p className="text-sm text-slate-600 mt-1">Your recent actions in the system</p>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {activityLog.map((activity, index) => (
-                  <div key={index} className="flex items-start gap-4">
-                    <div className={`w-10 h-10 rounded-lg ${getActivityIcon(activity.type)} flex items-center justify-center text-sm font-medium flex-shrink-0`}>
-                      {activity.type[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-slate-900 font-medium">{activity.action}</p>
-                      <p className="text-xs text-slate-600 mt-0.5">
-                        {activity.date} at {activity.time}
-                      </p>
-                    </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getActivityIcon(activity.type)} flex-shrink-0`}>
-                      {activity.type}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <button className="p-4 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-left">
-            <div className="text-sm font-medium text-slate-900">Change Password</div>
-            <div className="text-xs text-slate-600 mt-1">Update your security credentials</div>
-          </button>
-          <button className="p-4 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-left">
-            <div className="text-sm font-medium text-slate-900">Notification Settings</div>
-            <div className="text-xs text-slate-600 mt-1">Manage email preferences</div>
-          </button>
-          <button className="p-4 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-left">
-            <div className="text-sm font-medium text-slate-900">Download Data</div>
-            <div className="text-xs text-slate-600 mt-1">Export your activity history</div>
-          </button>
-          <button className="p-4 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-left">
-            <div className="text-sm font-medium text-slate-900">View Sessions</div>
-            <div className="text-xs text-slate-600 mt-1">Active login sessions</div>
-          </button>
         </div>
       </div>
 

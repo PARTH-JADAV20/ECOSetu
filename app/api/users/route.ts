@@ -3,6 +3,36 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
     try {
+        // Check if email query parameter is provided
+        const email = request.nextUrl.searchParams.get('email');
+
+        if (email) {
+            console.log(`API: Fetching user for email: ${email}`);
+            // Fetch single user by email
+            const user = await prisma.user.findUnique({
+                where: { email },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    status: true,
+                    location: true,
+                    phone: true,
+                    profilePicture: true,
+                },
+            });
+
+            if (!user) {
+                console.log(`API: User not found for email: ${email}`);
+                return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            }
+
+            console.log(`API: User found: ${user.email} with role ${user.role}`);
+            return NextResponse.json(user);
+        }
+
+        // Fetch all users if no email parameter
         const users = await prisma.user.findMany({
             select: {
                 id: true,
@@ -19,9 +49,10 @@ export async function GET(request: NextRequest) {
         });
 
         return NextResponse.json(users);
-    } catch (error) {
+    } catch (error: any) {
+        console.error('API Error in /api/users:', error);
         return NextResponse.json(
-            { error: 'Failed to fetch users' },
+            { error: 'Failed to fetch users', details: error.message },
             { status: 500 }
         );
     }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useCurrency } from '../contexts/CurrencyContext';
 
 type Page = any;
-type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
+type Role = 'Engineer' | 'MCO Manager' | 'Operations' | 'Admin';
 
 interface ProductsListProps {
   onNavigate: (page: Page) => void;

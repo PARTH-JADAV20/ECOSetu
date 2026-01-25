@@ -92,7 +92,6 @@ model ECO {
   changes       ECOChange[]
   approvals     ECOApproval[]
   auditLog      ECOAuditLog[]
-  changes       ECOChange[]
 }
 
 model ECOChange {

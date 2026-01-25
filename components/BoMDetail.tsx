@@ -2,7 +2,7 @@ import { ArrowLeft, Package, Wrench } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 type Page = any;
-type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
+type Role = 'Engineer' | 'MCO Manager' | 'Operations' | 'Admin';
 
 interface BoMDetailProps {
   bomId: string;
