@@ -9,7 +9,7 @@ export async function GET() {
         const roles = [
             { name: 'Admin', description: 'Full system access and user management', permissions: 'Full Access' },
             { name: 'Engineer', description: 'Can create and modify products, BoMs, and ECOs', permissions: 'Read/Write' },
-            { name: 'Approver', description: 'Can approve or reject ECOs', permissions: 'Approve' },
+            { name: 'MCO Manager', description: 'Can approve or reject ECOs', permissions: 'Approve' },
             { name: 'Operations', description: 'Can view and implement approved ECOs', permissions: 'Read/Implement' },
         ];
 
@@ -41,7 +41,7 @@ export async function GET() {
                 name: 'Michael Approver',
                 email: 'approver@example.com',
                 password: 'password123',
-                role: 'Approver',
+                role: 'MCO Manager',
                 status: 'Active',
             },
         ];

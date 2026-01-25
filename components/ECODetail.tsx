@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, Check, X, CheckCircle2, Clock, FileText, GitCompare, History, ScrollText } from 'lucide-react';
 
 type Page = any;
-type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
+type Role = 'Engineer' | 'MCO Manager' | 'Operations' | 'Admin';
 
 interface ECODetailProps {
   ecoId: string;
@@ -41,11 +41,11 @@ export function ECODetail({ ecoId, onNavigate, role }: ECODetailProps) {
     fetchECO();
   }, [ecoId]);
 
-  const canApprove = role === 'Approver' && eco?.status === 'Pending Approval';
+  const canApprove = role === 'MCO Manager' && eco?.status === 'Pending Approval';
   const canValidate = role === 'Operations';
   const canSubmitDraft = (role === 'Engineer' || role === 'Admin') && eco?.status === 'Draft';
-  const canMarkImplemented = role === 'Approver' && eco?.status === 'Approved';
-  const canMarkCompleted = role === 'Approver' && eco?.status === 'Implementation';
+  const canMarkImplemented = role === 'MCO Manager' && eco?.status === 'Approved';
+  const canMarkCompleted = role === 'MCO Manager' && eco?.status === 'Implementation';
 
   const handleSubmitForApproval = async () => {
     if (!eco) return;
@@ -121,7 +121,7 @@ export function ECODetail({ ecoId, onNavigate, role }: ECODetailProps) {
       const response = await fetch(`/api/eco/${ecoId}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ approverName: currentUser?.name || 'Approver', comment: approvalComment }),
+        body: JSON.stringify({ approverName: currentUser?.name || 'MCO Manager', comment: approvalComment }),
       });
       if (response.ok) {
         const updated = await response.json();
@@ -154,7 +154,7 @@ export function ECODetail({ ecoId, onNavigate, role }: ECODetailProps) {
       const response = await fetch(`/api/eco/${ecoId}/implement`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ approverName: currentUser?.name || 'Approver', comment: approvalComment }),
+        body: JSON.stringify({ approverName: currentUser?.name || 'MCO Manager', comment: approvalComment }),
       });
       if (response.ok) {
         const updated = await response.json();
@@ -179,7 +179,7 @@ export function ECODetail({ ecoId, onNavigate, role }: ECODetailProps) {
       const response = await fetch(`/api/eco/${ecoId}/complete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ approverName: currentUser?.name || 'Approver', comment: approvalComment }),
+        body: JSON.stringify({ approverName: currentUser?.name || 'MCO Manager', comment: approvalComment }),
       });
       if (response.ok) {
         const updated = await response.json();
@@ -385,7 +385,7 @@ export function ECODetail({ ecoId, onNavigate, role }: ECODetailProps) {
                     <div key={index} className="p-4 border border-slate-200 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <div>
-                          <div className="font-medium text-slate-900">{approval.role || 'Approver'}</div>
+                          <div className="font-medium text-slate-900">{approval.role || 'MCO Manager'}</div>
                           <div className="text-sm text-slate-600">{approval.name || 'Unknown'}</div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -488,7 +488,7 @@ export function ECODetail({ ecoId, onNavigate, role }: ECODetailProps) {
         </div>
       )}
 
-      {/* Implementation and Completion Actions (Approver only) */}
+      {/* Implementation and Completion Actions (MCO Manager only) */}
       {(canMarkImplemented || canMarkCompleted) && (
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <h4 className="font-medium text-slate-900 mb-4">Progress Actions</h4>
@@ -533,7 +533,7 @@ export function ECODetail({ ecoId, onNavigate, role }: ECODetailProps) {
       {canSubmitDraft && (
         <div className="bg-white rounded-xl border border-slate-200 p-6">
           <h4 className="font-medium text-slate-900 mb-4">Submit Draft</h4>
-          <p className="text-sm text-slate-600 mb-4">Send this ECO for approval. Approvers will review and decide.</p>
+          <p className="text-sm text-slate-600 mb-4">Send this ECO for approval. MCO Managers will review and decide.</p>
           <button
             onClick={handleSubmitForApproval}
             disabled={isSubmitting}

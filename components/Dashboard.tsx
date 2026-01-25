@@ -5,7 +5,7 @@ type Page = any;
 
 interface DashboardProps {
   onNavigate: (page: Page) => void;
-  role?: 'Engineer' | 'Approver' | 'Operations' | 'Admin';
+  role?: 'Engineer' | 'MCO Manager' | 'Operations' | 'Admin';
 }
 
 // Analytics Data
@@ -78,16 +78,35 @@ export function Dashboard({ onNavigate, role }: DashboardProps) {
   ]
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'New':
-        return 'bg-blue-100 text-blue-700';
-      case 'Approval':
-        return 'bg-amber-100 text-amber-700';
-      case 'Done':
-        return 'bg-emerald-100 text-emerald-700';
-      default:
-        return 'bg-slate-100 text-slate-700';
+    const lowerStatus = status?.toLowerCase() || '';
+    
+    // Gray for draft
+    if (lowerStatus.includes('draft') || lowerStatus.includes('new')) {
+      return 'bg-slate-100 text-slate-700';
     }
+    
+    // Yellow for pending approval
+    if (lowerStatus.includes('pending approval') || lowerStatus.includes('approval')) {
+      return 'bg-yellow-100 text-yellow-700';
+    }
+    
+    // Green for completed/done
+    if (lowerStatus.includes('completed') || lowerStatus.includes('done')) {
+      return 'bg-emerald-100 text-emerald-700';
+    }
+    
+    // Blue for implementation/implemented
+    if (lowerStatus.includes('implementation') || lowerStatus.includes('implemented')) {
+      return 'bg-blue-100 text-blue-700';
+    }
+    
+    // Red for rejected
+    if (lowerStatus.includes('rejected')) {
+      return 'bg-red-100 text-red-700';
+    }
+    
+    // Default gray
+    return 'bg-slate-100 text-slate-700';
   };
 
   const canCreateActions = role === 'Engineer' || role === 'Admin';

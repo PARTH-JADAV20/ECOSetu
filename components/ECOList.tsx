@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Filter, Search } from 'lucide-react';
 
 type Page = any;
-type Role = 'Engineer' | 'Approver' | 'Operations' | 'Admin';
+type Role = 'Engineer' | 'MCO Manager' | 'Operations' | 'Admin';
 
 interface ECOListProps {
   onNavigate: (page: Page) => void;
