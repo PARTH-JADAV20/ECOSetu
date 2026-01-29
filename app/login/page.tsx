@@ -15,13 +15,13 @@ export default function LoginPage() {
   const [userRole, setUserRole] = useState<Role | null>(null);
   const [isLoadingRole, setIsLoadingRole] = useState(false);
   const [userNotFound, setUserNotFound] = useState(false);
-  const router = useRouter();  
+  const router = useRouter();
   const { login, isReady, isAuthenticated } = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isReady && isAuthenticated) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [isReady, isAuthenticated, router]);
 
@@ -35,7 +35,7 @@ export default function LoginPage() {
       const trimmedEmail = email.trim();
       // Stricter email validation regex
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      
+
       // Only fetch if email is valid format
       if (!emailRegex.test(trimmedEmail)) {
         setUserRole(null);
@@ -48,7 +48,7 @@ export default function LoginPage() {
       setUserNotFound(false);
       try {
         const response = await fetch(`/api/users?email=${encodeURIComponent(trimmedEmail)}`, { signal });
-        
+
         if (response.ok) {
           const userData = await response.json();
           // Only update if component is still mounted and request wasn't aborted
@@ -106,8 +106,8 @@ export default function LoginPage() {
 
       if (response.ok) {
         await login(data);
-        // Use window.location for hard navigation
-        window.location.href = '/dashboard';
+        // Use router.replace to avoid history pollution
+        router.replace('/dashboard');
       } else {
         setError(data.error || 'Invalid email or password');
         setIsLoading(false);
@@ -127,59 +127,92 @@ export default function LoginPage() {
     return null;
   }
 
+  const TEST_CREDENTIALS: Record<Role, { email: string }> = {
+    Admin: { email: 'admin@example.com' },
+    Engineer: { email: 'sarah@example.com' },
+    'ECO Manager': { email: 'michael@example.com' },
+    Operations: { email: 'john@example.com' },
+  };
+
+  const handleTestAutoFill = (role: Role) => {
+    setEmail(TEST_CREDENTIALS[role].email);
+    setPassword('password123'); // Using the common seed password
+  };
+
   return (
-    <section>
-      {/* Background animated squares */}
-      {Array.from({ length: 250 }).map((_, index) => (
-        <span key={index}></span>
-      ))}
+    <div className="login-page-wrapper">
+      <section>
+        {/* Background animated squares */}
+        {Array.from({ length: 250 }).map((_, index) => (
+          <span key={index}></span>
+        ))}
 
-      <div className="signin">
-        <div className="content">
-          <h2>Sign In</h2>
+        <div className="signin">
+          <div className="content">
+            <h2>Sign In</h2>
 
-          {/* Role Display */}
-          <div className="role-display" style={userNotFound ? { color: '#ff6b6b', borderColor: 'rgba(255, 107, 107, 0.3)', background: 'rgba(255, 107, 107, 0.1)' } : {}}>
-            {isLoadingRole ? 'Loading role...' : 
-             userRole ? `Role: ${userRole}` : 
-             userNotFound ? 'User not found' :
-             'your role will appear here'}
+            {/* Role Display */}
+            <div className="role-display" style={userNotFound ? { color: '#ff6b6b', borderColor: 'rgba(255, 107, 107, 0.3)', background: 'rgba(255, 107, 107, 0.1)' } : {}}>
+              {isLoadingRole ? 'Loading role...' :
+                userRole ? `Role: ${userRole}` :
+                  userNotFound ? 'User not found' :
+                    'your role will appear here'}
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <form className="form" onSubmit={handleSubmit}>
+              <div className="inputBox">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <i>Email</i>
+              </div>
+
+              <div className="inputBox">
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <i>Password</i>
+              </div>
+
+              <div className="inputBox">
+                <input
+                  type="submit"
+                  value={isLoading ? 'Signing In...' : 'Sign In'}
+                  disabled={isLoading}
+                />
+              </div>
+            </form>
+
+            <div className="test-app-section">
+              <p>Test App</p>
+              <div className="test-buttons">
+                {Object.keys(TEST_CREDENTIALS)
+                  .filter(role => role !== 'Admin') // Keep the most used ones first
+                  .concat('Admin')
+                  .map((role) => (
+                    <button
+                      key={role}
+                      type="button"
+                      onClick={() => handleTestAutoFill(role as Role)}
+                      className="test-btn"
+                    >
+                      {role === 'ECO Manager' ? 'ECO Manager' : role}
+                    </button>
+                  ))}
+              </div>
+            </div>
           </div>
-
-          {error && <div className="error-message">{error}</div>}
-
-          <form className="form" onSubmit={handleSubmit}>
-            <div className="inputBox">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <i>Email</i>
-            </div>
-
-            <div className="inputBox">
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <i>Password</i>
-            </div>
-
-            <div className="inputBox">
-              <input
-                type="submit"
-                value={isLoading ? 'Signing In...' : 'Sign In'}
-                disabled={isLoading}
-              />
-            </div>
-          </form>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
 
