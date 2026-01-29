@@ -1,22 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
-}
-
-body {
+.login-page-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   background: #0a0e27;
   overflow: hidden;
+  font-family: 'Poppins', sans-serif;
 }
 
-section {
+.login-page-wrapper section {
   position: absolute;
   width: 100vw;
   height: 100vh;
@@ -28,24 +22,26 @@ section {
   overflow: hidden;
 }
 
-section::before {
+.login-page-wrapper section::before {
   content: '';
   position: absolute;
   width: 100%;
   height: 100%;
-  background: #0a0e27;
+  background: linear-gradient(#0a0e27, #00d4ff, #0099ff, #0a0e27);
+  animation: animate 6s linear infinite;
 }
 
 @keyframes animate {
   0% {
-    transform: translateY(0%);
+    transform: translateY(-100%);
   }
+
   100% {
-    transform: translateY(0%);
+    transform: translateY(100%);
   }
 }
 
-section span {
+.login-page-wrapper section span {
   position: relative;
   display: block;
   width: calc(6.25vw - 2px);
@@ -55,8 +51,8 @@ section span {
   transition: 1.5s;
 }
 
-section span:hover {
-  background: #0f1535;
+.login-page-wrapper section span:hover {
+  background: linear-gradient(135deg, #00d4ff, #0099ff);
   transition: 0s;
 }
 
@@ -72,7 +68,7 @@ section span:hover {
   padding: 35px 35px;
   border-radius: 10px;
   box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5),
-              0 0 50px rgba(0, 212, 255, 0.2);
+    0 0 50px rgba(0, 212, 255, 0.2);
   border: 1px solid rgba(0, 212, 255, 0.3);
 }
 
@@ -155,8 +151,8 @@ section span:hover {
   font-size: 0.95em;
 }
 
-.inputBox input:focus ~ i,
-.inputBox input:valid ~ i {
+.inputBox input:focus~i,
+.inputBox input:valid~i {
   top: 12px;
   transform: translateY(0);
   font-size: 0.75em;
@@ -204,26 +200,73 @@ input[type="submit"]:active {
   text-align: center;
 }
 
+.test-app-section {
+  width: 100%;
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.test-app-section p {
+  color: #8fa4d4;
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.test-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+
+.test-btn {
+  padding: 8px 10px;
+  background: rgba(26, 35, 70, 0.8);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.75em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.test-btn:hover {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: #00d4ff;
+  color: #00d4ff;
+  transform: translateY(-2px);
+}
+
 /* Responsive */
 @media (max-width: 900px) {
-  section span {
+  .login-page-wrapper section span {
     width: calc(10vw - 2px);
     height: calc(10vw - 2px);
   }
 }
 
 @media (max-width: 600px) {
-  section span {
+  .login-page-wrapper section span {
     width: calc(20vw - 2px);
     height: calc(20vw - 2px);
   }
 
   .signin {
     width: 90%;
-    padding: 40px 30px;
+    padding: 30px 25px;
   }
 
   .content h2 {
-    font-size: 1.8em;
+    font-size: 1.6em;
+  }
+
+  .test-buttons {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

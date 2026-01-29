@@ -31,7 +31,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   useEffect(() => {
     if (isReady && !isAuthenticated) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [isAuthenticated, isReady, router]);
 
@@ -168,8 +168,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 key={item.name}
                 onClick={() => router.push(item.path)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
+                  ? 'bg-slate-800 text-white'
+                  : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
                   }`}
               >
                 <item.icon className="w-5 h-5" />

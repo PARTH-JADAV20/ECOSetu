@@ -1,89 +1,202 @@
-# CodingKarma ERP/PLM System
+# 🏗️ ECOSetu - Enterprise PLM & ERP
 
-CodingKarma is a comprehensive Product Lifecycle Management (PLM) and Enterprise Resource Planning (ERP) system designed to streamline manufacturing operations, product versioning, and engineering change management.
+**ECOSetu** is a next-generation Product Lifecycle Management (PLM) and Enterprise Resource Planning (ERP) system. Developed by team **CodingKarma** for the **Odoo x Adani University Hackathon**, ECOSetu streamlines manufacturing operations, product versioning, and engineering change management with a focus on speed, security, and global accessibility.
+
+---
 
 ## 🚀 Key Features
 
--   **Product Management**: Comprehensive tracking of products, versions, and metadata.
--   **Bill of Materials (BoM)**: Detailed management of components and operations for product assembly.
--   **Engineering Change Orders (ECO)**: Formalized process for tracking and approving changes to products and BoMs.
--   **Dashboard & Analytics**: Real-time insights into manufacturing metrics and system activity.
--   **Role-Based Access Control (RBAC)**: Secure access management for different user roles.
--   **Notification System**: Integrated alerts for critical system events and ECO stages.
+-   **Product & BoM Management**: Real-time tracking of complex products and multi-level Bills of Materials.
+-   **Engineering Change Orders (ECO)**: Formalized, automated workflow for tracking and approving engineering changes.
+-   **Alex: Voice-Enabled Assistant**: Perform critical actions like approving or implementing ECOs using voice commands (powered by WebSpeech API).
+-   **Automated Onboarding**: When an Admin creates a new user, **Nodemailer** automatically sends credentials and role information to the employee's email.
+-   **Global Reach (Multi-Currency)**: Built-in support for multiple currencies, allowing the tool to be used in international manufacturing environments.
+-   **Premium Glassmorphic UI**: A stunning, high-performance interface with optimized dark mode and fluid animations using Framer Motion.
+-   **Role-Based Access Control (RBAC)**: Secure, granular permissions for distinct organizational roles.
+
+---
 
 ## 🛠️ Tech Stack
 
--   **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS, Radix UI, Framer Motion.
--   **Backend**: Next.js API Routes (RESTful), Prisma ORM.
--   **Database**: PostgreSQL.
--   **Authentication**: JWT-based authentication with bcrypt for password hashing.
--   **Charts**: Recharts for data visualization.
+-   **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS 4.0.
+-   **Backend**: Next.js API Routes, Prisma ORM.
+-   **Database**: PostgreSQL / Prisma Client.
+-   **Communication**: **Nodemailer** for automated transactional emails.
+-   **Security**: **JWT (JSON Web Tokens)** for decentralized authentication and **bcryptjs** for secure hashing.
+-   **Visualizations**: **Recharts** for real-time manufacturing analytics.
+
+---
+
+## 📊 System Roles & Workflow
+
+ECOSetu utilizes a strictly defined hierarchy to ensure accountability and data integrity.
+
+```mermaid
+graph TD
+    Admin["👤 Admin (Control Center)"]
+    Engineer["⚙️ Engineer (Creator)"]
+    Manager["📋 ECO Manager (Reviewer)"]
+    Ops["🏗️ Operations (Implementer)"]
+
+    Admin -->|"Creates Users (E-mail Triggers)"| Engineer
+    Admin -->|"Creates Users (E-mail Triggers)"| Manager
+    Admin -->|"Creates Users (E-mail Triggers)"| Ops
+    
+    Engineer -->|"Defines"| Product["Products & BoMs"]
+    Engineer -->|"Initiates"| ECO["Change Orders (ECO)"]
+    
+    ECO -->|"Validates/Signs"| Manager
+    Manager -->|"Approves/Rejects"| ECO
+    
+    ECO -->|"Deploys Change"| Ops
+    Ops -->|"Closes Cycle"| Product
+
+    classDef admin fill:#f9731688,stroke:#f97316,stroke-width:2px,color:#fff;
+    classDef engineer fill:#eab30888,stroke:#facc15,stroke-width:2px,color:#fff;
+    classDef manager fill:#22c55e88,stroke:#22c55e,stroke-width:2px,color:#fff;
+    classDef ops fill:#3b82f688,stroke:#3b82f6,stroke-width:2px,color:#fff;
+    classDef target fill:#8b5cf688,stroke:#8b5cf6,stroke-width:2px,color:#fff;
+
+    class Admin admin;
+    class Engineer engineer;
+    class Manager manager;
+    class Ops ops;
+    class Product,ECO target;
+```
 
 ---
 
 ## 📊 System Architecture
 
-### User Flow
-The following diagram illustrates the typical user journey from login to managing products and ECOs.
-
+### User Journey
 ```mermaid
 graph TD
-    A[User] -->|Login| B[Authentication]
-    B -->|Success| C[Dashboard]
-    C --> D[Product Management]
-    C --> E[BoM Management]
-    C --> F[ECO Tracking]
-    
-    D -->|Create/Update| G[Database]
-    E -->|Define Components| G
-    F -->|Request Change| H[Review Flow]
-    H -->|Approve| I[New Product Version]
-    I --> G
+    User["👤 User"]
+    Auth["🔐 Authentication"]
+    Dashboard["📊 Dashboard"]
+    Product["📦 Product Mgmt"]
+    BoM["🧩 BoM Mgmt"]
+    ECO["📝 ECO Tracking"]
+    Voice["🎙️ Alex Assistant"]
+    Review["🔍 Review Flow"]
+    Version["🔁 New Version"]
+    DB["🗄️ Database"]
+
+    User --> Auth --> Dashboard
+    Dashboard --> Product
+    Dashboard --> BoM
+    Dashboard --> ECO
+    Dashboard --> Voice
+
+    Product --> DB
+    BoM --> DB
+    ECO --> Review --> Version --> DB
+
+    classDef user fill:#64748b88,stroke:#475569,stroke-width:2px,color:#fff
+    classDef ui fill:#2563eb88,stroke:#2563eb,stroke-width:2px,color:#fff
+    classDef flow fill:#0891b288,stroke:#0891b2,stroke-width:2px,color:#fff
+    classDef db fill:#ea580c88,stroke:#ea580c,stroke-width:2px,color:#fff
+
+    class User user
+    class Auth,Dashboard,Voice ui
+    class Product,BoM,ECO,Review,Version flow
+    class DB db
+
 ```
 
 ### Backend Architecture
-CodingKarma follows a modern serverless-friendly architecture using Next.js API routes and Prisma.
-
 ```mermaid
 graph LR
-    subgraph Frontend
-        V[Vite/Next.js UI]
-        S[Server Actions/Fetch]
+    subgraph "Frontend"
+        V["Vite/Next.js UI"]
+        S["Server Actions/Fetch"]
     end
     
-    subgraph Backend
-        R[API Routes]
-        L[Lib/Middlewares]
-        P[Prisma Client]
+    subgraph "Backend"
+        R["API Routes"]
+        L["Lib/Middlewares"]
+        P["Prisma Client"]
     end
     
-    subgraph Data
-        DB[(PostgreSQL)]
+    subgraph "Data"
+        DB[("PostgreSQL")]
     end
     
     V --> S
-    S -->|HTTP Requests| R
-    R -->|Auth/Validation| L
+    S -->|"HTTP Requests"| R
+    R -->|"Auth/Validation"| L
     L --> R
     R --> P
     P --> DB
+
+    style V fill:#2563eb88,stroke:#2563eb,stroke-width:1px,color:#fff
+    style S fill:#3b82f688,stroke:#3b82f6,stroke-width:1px,color:#fff
+    style R fill:#0891b288,stroke:#0891b2,stroke-width:1px,color:#fff
+    style L fill:#0d948888,stroke:#0d9488,stroke-width:1px,color:#fff
+    style P fill:#10b98188,stroke:#10b981,stroke-width:1px,color:#fff
+    style DB fill:#ea580c88,stroke:#ea580c,stroke-width:2px,color:#fff
+    style Frontend fill:none,stroke:#2563eb,stroke-dasharray: 5 5,color:#fff
+    style Backend fill:none,stroke:#0891b2,stroke-dasharray: 5 5,color:#fff
+    style Data fill:none,stroke:#ea580c,stroke-dasharray: 5 5,color:#fff
 ```
 
 ### Database Schema (ERD)
 The system leverages a relational schema to maintain data integrity across products, components, and change orders.
 
 ```mermaid
-erDiagram
-    User ||--o{ UserActivity : performs
-    User ||--o{ Notification : receives
-    Product ||--o{ ProductVersion : has
-    Product ||--o{ BoM : defines
-    Product ||--o{ ECO : subject_to
-    BoM ||--o{ BoMComponent : contains
-    BoM ||--o{ BoMOperation : includes
-    ECO ||--o{ ECOChange : specifies
-    ECO ||--o{ ECOApproval : requires
-    ECO ||--o{ ECOAuditLog : logs
+graph LR
+    User["User"]
+    UserActivity["UserActivity"]
+    Notification["Notification"]
+    Product["Product"]
+    ProductVersion["ProductVersion"]
+    BoM["BoM"]
+    ECO["ECO"]
+    BoMComponent["BoMComponent"]
+    BoMOperation["BoMOperation"]
+    ECOChange["ECOChange"]
+    ECOApproval["ECOApproval"]
+    ECOAuditLog["ECOAuditLog"]
+
+    User --- UserActivity
+    User --- Notification
+    Product --- ProductVersion
+    Product --- BoM
+    Product --- ECO
+    BoM --- BoMComponent
+    BoM --- BoMOperation
+    ECO --- ECOChange
+    ECO --- ECOApproval
+    ECO --- ECOAuditLog
+
+    style User fill:#f9731688,stroke:#f97316,stroke-width:1px,color:#fff
+    style UserActivity fill:#eab30888,stroke:#facc15,stroke-width:1px,color:#fff
+    style Notification fill:#eab30888,stroke:#facc15,stroke-width:1px,color:#fff
+
+    style Product fill:#22c55e88,stroke:#22c55e,stroke-width:1px,color:#fff
+    style ProductVersion fill:#3b82f688,stroke:#3b82f6,stroke-width:1px,color:#fff
+    style BoM fill:#3b82f688,stroke:#3b82f6,stroke-width:1px,color:#fff
+    style ECO fill:#3b82f688,stroke:#3b82f6,stroke-width:1px,color:#fff
+
+    style BoMComponent fill:#8b5cf688,stroke:#8b5cf6,stroke-width:1px,color:#fff
+    style BoMOperation fill:#8b5cf688,stroke:#8b5cf6,stroke-width:1px,color:#fff
+
+    style ECOChange fill:#ec489988,stroke:#ec4899,stroke-width:1px,color:#fff
+    style ECOApproval fill:#ec489988,stroke:#ec4899,stroke-width:1px,color:#fff
+    style ECOAuditLog fill:#ec489988,stroke:#ec4899,stroke-width:1px,color:#fff
+
+        %% ===== LEGEND =====
+    LegendUA["UserActivity, Notification"]
+    LegendCore["ProductVersion, BoM, ECO"]
+    LegendBoM["BoMComponent, BoMOperation"]
+    LegendECO["ECOChange, ECOApproval, ECOAuditLog"]
+
+    style LegendUA fill:#eab30888,stroke:#facc15,stroke-width:2px,color:#fff
+    style LegendCore fill:#3b82f688,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style LegendBoM fill:#8b5cf688,stroke:#8b5cf6,stroke-width:2px,color:#fff
+    style LegendECO fill:#ec489988,stroke:#ec4899,stroke-width:2px,color:#fff
+
+
 ```
 
 ---
@@ -98,8 +211,8 @@ erDiagram
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/PARTH-JADAV20/OdooXadani-team-CodingKarma.git
-    cd codingkarma
+    git clone https://github.com/PARTH-JADAV20/ECOSetu.git
+    cd ECOSetu
     ```
 
 2.  **Install dependencies**:
@@ -108,41 +221,32 @@ erDiagram
     ```
 
 3.  **Environment Setup**:
-    Create a `.env` file in the root and add your database URL:
+    Create a `.env` file in the root:
     ```env
-    DATABASE_URL="postgresql://user:password@localhost:5432/codingkarma"
+    DATABASE_URL="postgresql://user:password@localhost:5432/ecosetu"
     JWT_SECRET="your-secret-key"
+    EMAIL_USER="your-email@example.com"
+    EMAIL_PASS="your-app-password"
     ```
 
-4.  **Database Migration**:
+4.  **Database Sync**:
     ```bash
     npx prisma db push
-    ```
-
-5.  **Seed the Database** (Optional):
-    ```bash
     npm run prisma:seed
     ```
 
-6.  **Run the Development Server**:
+5.  **Launch**:
     ```bash
     npm run dev
     ```
 
 ---
 
-## 📖 API Documentation
+## 🤝 The Team (CodingKarma)
 
-The system exposes a RESTful API under the `/api` directory. Key endpoint categories include:
-
--   `/api/auth`: Login, registration, and session management.
--   `/api/products`: CRUD operations for products and version history.
--   `/api/bom`: Management of Bill of Materials and components.
--   `/api/eco`: Engineering Change Order lifecycle management.
--   `/api/users`: Profile and system user management.
+This project was built with ❤️ for the **Odoo x Adani University Hackathon**. 
 
 ---
 
 ## 📄 License
-
 This project is licensed under the MIT License.
