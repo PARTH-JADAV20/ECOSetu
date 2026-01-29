@@ -33,14 +33,14 @@ ECOSetu utilizes a strictly defined hierarchy to ensure accountability and data 
 
 ```mermaid
 graph TD
-    Admin["👤 Admin (Control Center)"]
-    Engineer["⚙️ Engineer (Creator)"]
-    Manager["📋 ECO Manager (Reviewer)"]
-    Ops["🏗️ Operations (Implementer)"]
+    Admin["👤 Admin<br/>(Control Center)"]
+    Engineer["⚙️ Engineer<br/>(Creator)"]
+    Manager["📋 ECO Manager<br/>(Reviewer)"]
+    Ops["🏗️ Operations<br/>(Implementer)"]
 
-    Admin -->|"Creates Users (E-mail Triggers)"| Engineer
-    Admin -->|"Creates Users (E-mail Triggers)"| Manager
-    Admin -->|"Creates Users (E-mail Triggers)"| Ops
+    Admin -->|"Creates Users<br/>(E-mail Triggers)"| Engineer
+    Admin -->|"Creates Users<br/>(E-mail Triggers)"| Manager
+    Admin -->|"Creates Users<br/>(E-mail Triggers)"| Ops
     
     Engineer -->|"Defines"| Product["Products & BoMs"]
     Engineer -->|"Initiates"| ECO["Change Orders (ECO)"]
@@ -108,14 +108,14 @@ graph TD
 ```mermaid
 graph LR
     subgraph "Frontend"
-        V["Vite/Next.js UI"]
-        S["Server Actions/Fetch"]
+        V["• Vite<br/>• Next.js UI"]
+        S["• Server Actions<br/>• Fetch"]
     end
     
     subgraph "Backend"
-        R["API Routes"]
-        L["Lib/Middlewares"]
-        P["Prisma Client"]
+        R["• API Routes"]
+        L["• Lib / Middlewares"]
+        P["• Prisma Client"]
     end
     
     subgraph "Data"
@@ -186,10 +186,11 @@ graph LR
     style ECOAuditLog fill:#ec489988,stroke:#ec4899,stroke-width:1px,color:#fff
 
         %% ===== LEGEND =====
-    LegendUA["UserActivity, Notification"]
-    LegendCore["ProductVersion, BoM, ECO"]
-    LegendBoM["BoMComponent, BoMOperation"]
-    LegendECO["ECOChange, ECOApproval, ECOAuditLog"]
+    LegendUA["• UserActivity<br/>• Notification"]
+    LegendCore["• ProductVersion<br/>• BoM<br/>• ECO"]
+    LegendBoM["• BoMComponent<br/>• BoMOperation"]
+    LegendECO["• ECOChange<br/>• ECOApproval<br/>• ECOAuditLog"]
+
 
     style LegendUA fill:#eab30888,stroke:#facc15,stroke-width:2px,color:#fff
     style LegendCore fill:#3b82f688,stroke:#3b82f6,stroke-width:2px,color:#fff
