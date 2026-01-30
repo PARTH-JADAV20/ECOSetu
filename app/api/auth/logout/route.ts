@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revokeRefreshToken } from '@/lib/auth';
 
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

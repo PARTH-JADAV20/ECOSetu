@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/email';
 
+export const runtime = 'nodejs';
+
 export async function GET(request: NextRequest) {
     try {
         // Check if email query parameter is provided

@@ -1,9 +1,7 @@
 import { sign, verify, SignOptions } from 'jsonwebtoken';
 import { compare, hash } from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import type { StringValue } from 'ms';
-
-const prisma = new PrismaClient();
 
 const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_REFRESH_SECRET: string = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-in-production';
