@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '../../../components/AppLayout';
 import { ECOCreate } from '../../../components/ECOCreate';
 import { useAuth } from '../../../contexts/AuthContext';
 
-export default function ECOCreatePage() {
+function ECOCreateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { currentRole } = useAuth();
@@ -24,9 +25,15 @@ export default function ECOCreatePage() {
     }
   };
 
+  return <ECOCreate onNavigate={handleNavigate} productId={productId} role={currentRole} />;
+}
+
+export default function ECOCreatePage() {
   return (
     <AppLayout>
-      <ECOCreate onNavigate={handleNavigate} productId={productId} role={currentRole} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <ECOCreateContent />
+      </Suspense>
     </AppLayout>
   );
 }

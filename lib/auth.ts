@@ -1,13 +1,14 @@
-import { sign, verify } from 'jsonwebtoken';
+import { sign, verify, SignOptions } from 'jsonwebtoken';
 import { compare, hash } from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
+import type { StringValue } from 'ms';
 
 const prisma = new PrismaClient();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-in-production';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m'; // 15 minutes
-const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN || '7d'; // 7 days
+const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_REFRESH_SECRET: string = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-in-production';
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '15m') as StringValue; // 15 minutes
+const REFRESH_EXPIRES_IN = (process.env.REFRESH_EXPIRES_IN || '7d') as StringValue; // 7 days
 
 export interface JWTPayload {
   userId: string;
@@ -24,14 +25,16 @@ export interface RefreshTokenPayload {
  * Generates an access token
  */
 export const generateAccessToken = (payload: JWTPayload): string => {
-  return sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  const options: SignOptions = { expiresIn: JWT_EXPIRES_IN };
+  return sign(payload, JWT_SECRET, options);
 };
 
 /**
  * Generates a refresh token
  */
 export const generateRefreshToken = (payload: RefreshTokenPayload): string => {
-  return sign(payload, JWT_REFRESH_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
+  const options: SignOptions = { expiresIn: REFRESH_EXPIRES_IN };
+  return sign(payload, JWT_REFRESH_SECRET, options);
 };
 
 /**

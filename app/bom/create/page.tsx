@@ -1,10 +1,11 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppLayout } from '../../../components/AppLayout';
 import { BoMCreate } from '../../../components/BoMCreate';
 
-export default function BoMCreatePage() {
+function BoMCreateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get('productId') || '';
@@ -22,9 +23,15 @@ export default function BoMCreatePage() {
     }
   };
 
+  return <BoMCreate onNavigate={handleNavigate} productId={productId} />;
+}
+
+export default function BoMCreatePage() {
   return (
     <AppLayout>
-      <BoMCreate onNavigate={handleNavigate} productId={productId} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <BoMCreateContent />
+      </Suspense>
     </AppLayout>
   );
 }
