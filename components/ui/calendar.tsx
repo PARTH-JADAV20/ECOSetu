@@ -59,19 +59,6 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={{
-        Chevron: ({ className, orientation }) => {
-          const Icon =
-            orientation === "left"
-              ? ChevronLeft
-              : orientation === "right"
-                ? ChevronRight
-                : orientation === "up"
-                  ? ChevronUp
-                  : ChevronDown;
-          return <Icon className={cn("size-4", className)} />;
-        },
-      }}
       {...props}
     />
   );

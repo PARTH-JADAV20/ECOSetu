@@ -145,7 +145,7 @@ export function VoiceAssistant({}: VoiceAssistantProps) {
     const actionMatch = command.match(/(approve|implement|complete)/i);
 
     if (!ecoIdMatch || !actionMatch) {
-      setErrorMessage("I didn't catch a valid ECO ID or Action. Try saying 'Approve ECO-123'.");
+      setErrorMessage("I didn't catch a valid ECO ID or Action. Try saying 'Approve EC000123'.");
       setStep('error');
       return;
     }

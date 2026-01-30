@@ -141,19 +141,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('Profile fetch response status:', response.status);
         
         if (response.ok) {
-          const freshUserData = await response.json();
-          console.log('Fresh user data received:', freshUserData);
-          
-          const updatedUser = { ...nextUser, ...freshUserData };
-          
-          // Use role from fresh data if available
-          const finalRole = (freshUserData.role as Role) || nextRole;
-          if (freshUserData.role && freshUserData.role !== nextRole) {
-              setCurrentRole(finalRole);
-          }
-          
-          setCurrentUser(updatedUser);
-          persistState({ isAuthenticated: true, user: updatedUser, role: finalRole });
+        const freshUserData = await response.json().catch(err => {
+          console.error('Failed to parse profile response:', err);
+          return null;
+        });
+        if (!freshUserData) {
+          console.log('Invalid profile response, using original data');
+          persistState({ isAuthenticated: true, user: nextUser, role: nextRole });
+          return;
+        }
+        console.log('Fresh user data received:', freshUserData);
+        
+        const updatedUser = { ...nextUser, ...freshUserData };
+        
+        // Use role from fresh data if available
+        const finalRole = (freshUserData.role as Role) || nextRole;
+        if (freshUserData.role && freshUserData.role !== nextRole) {
+            setCurrentRole(finalRole);
+        }
+        
+        setCurrentUser(updatedUser);
+        persistState({ isAuthenticated: true, user: updatedUser, role: finalRole });
         } else {
           console.log('Profile fetch failed, using original data');
           // If fetch fails, persist the original data
@@ -186,7 +194,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.log('Refresh response status:', response.status);
       
       if (response.ok) {
-        const freshUserData = await response.json();
+        const freshUserData = await response.json().catch(err => {
+          console.error('Failed to parse refresh response:', err);
+          return null;
+        });
+        if (!freshUserData) {
+          console.log('Invalid refresh response, skipping update');
+          return;
+        }
         console.log('Refreshed user data:', freshUserData);
         
         // Update role if it exists in the fresh data

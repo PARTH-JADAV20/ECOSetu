@@ -23,7 +23,7 @@ export default function LoginPage() {
     if (isReady && isAuthenticated) {
       router.replace('/dashboard');
     }
-  }, [isReady, isAuthenticated, router]);
+  }, [isReady, isAuthenticated]);
 
   // Fetch user role when email changes
   useEffect(() => {
@@ -50,7 +50,17 @@ export default function LoginPage() {
         const response = await fetch(`/api/users?email=${encodeURIComponent(trimmedEmail)}`, { signal });
 
         if (response.ok) {
-          const userData = await response.json();
+          const userData = await response.json().catch(err => {
+            console.error('Failed to parse user response:', err);
+            return null;
+          });
+          if (!userData) {
+            if (!signal.aborted) {
+              setUserRole(null);
+              setUserNotFound(true);
+            }
+            return;
+          }
           // Only update if component is still mounted and request wasn't aborted
           if (!signal.aborted) {
             setUserRole(userData.role || null);
